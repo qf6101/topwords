@@ -27,4 +27,4 @@ Story of Stone" example)
 
 ## API Usage
 
-Please refer to src/test/scala/io/github/qf6101/topwords/TestTopWORDS.scala
+Please refer to [src/test/scala/io/github/qf6101/topwords/TestTopWORDS.scala](src/test/scala/io/github/qf6101/topwords/TestTopWORDS.scala)
