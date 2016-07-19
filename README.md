@@ -6,7 +6,7 @@ This project is an implementation of TopWORDS algorithm proposed in the followin
 
 > Deng K, Bol P K, Li K J, et al. On the unsupervised analysis of domain-specific Chinese texts[J]. Proceedings of the National Academy of Sciences, 2016: 201516510.
 
-TopWORDS can achieve word discovery and text segmentation simultaneously for Chinese texts. It is designed to be fast and use very little memory. In my test, it takes around 5 minutes to segment "The Story of Stone" with an Intel i3-4160 CPU and less than 2G memory. This implementation is based on Spark 1.6.2 which means it can be used in both local machine with specified number of threads and in yarn clusters for large amount of texts.
+TopWORDS can achieve word discovery and text segmentation simultaneously for Chinese texts. It is designed to be fast and use very little memory. In my test, it takes around 5 minutes to segment "The Story of Stone" with an Intel i3-4160 CPU and less than 2G memory. This implementation is based on Spark 1.6.x which means it can be used in both local machine with specified number of threads and in yarn clusters for large amount of texts.
 
 ## Local Machine Mode
 
