@@ -6,13 +6,13 @@ cd "$( cd "$( dirname "$0"  )" && pwd  )"
 ##### The Parameters You Need to Predefine Start #####
 
 # set the environment variables
-HADOOP_HOME="/home/nlp/hadoop-xs"
-SPARK_HOME="/home/nlp/spark-xs.1.6.1"  #Spark home
+HADOOP_HOME="/path/to/hadoop/home"  #Hadoop home
+SPARK_HOME="/path/to/spark/home"  #Spark home
 topwords_jar="../release/topwords-1.0.jar"  #topwords jar file
 
 # set the arguments
-corpusLoc="qfeng/topwords/story_of_stone.txt"  #location of input corpus in HDFS
-outputLoc="qfeng/topwords/ss_output" #location of output dictionary and segmented corpus in HDFS
+corpusLoc="/path/to/corpus/in/hdfs/*"  #location of input corpus in HDFS
+outputLoc="/path/to/output/in/hdfs" #location of output dictionary and segmented corpus in HDFS
 tauL="10"  #threshold of word length
 tauF="5"  #threshold of word frequency
 numIterations="10"  #number of iterations
@@ -24,7 +24,7 @@ numPartitions="100"  #number of partitions
 executor_memory="2G"  #memory allocation for each executor
 num_executors="10"  #number of executors allocated
 executor_cores="2"  #number of cores allocated for each executor
-queue="nlp"  #yarn queue
+queue="queue_name"  #yarn queue
 
 ##### The Parameters You Need to Predefine End #####
 

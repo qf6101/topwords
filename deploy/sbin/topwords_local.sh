@@ -19,13 +19,14 @@ convergeTol="1E-3"  #convergence tolerance
 textLenThld="2000"  #preprocessing threshold of text length
 useProbThld="1E-8"  #prune threshold of word use probability
 wordBoundaryThld="0.0"  #segment threshold of word boundary score (use segment tree if set to <= 0)
+numThreads="1"  #number of threads
 
 ##### The Parameters You Need to Predefine End #####
 
 # execute the TopWORDS algorithm
 ${SPARK_HOME}/bin/spark-submit \
 --class io.github.qf6101.topwords.TopWORDSApp \
---master "local[1]" \
+--master "local[${numThreads}]" \
 --name topwords_local \
 ${topwords_jar} \
 --corpusLoc $corpusLoc \
