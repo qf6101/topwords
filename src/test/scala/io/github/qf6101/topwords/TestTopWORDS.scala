@@ -23,7 +23,7 @@ object TestTopWORDS extends Serializable {
       tauF = 5,
       textLenThld = 2000,
       useProbThld = 1E-8,
-      numIteration = 10,
+      numIterations = 10,
       convergeTol = 1E-3,
       wordBoundaryThld = 0.0)
       .run(corpus, outputFile + "/dictionary", outputFile + "/segmented_texts")

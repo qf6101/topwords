@@ -45,9 +45,9 @@ class Dictionary(val thetaS: Map[String, Double],
   def save(dictFile: String): Unit = {
     val sc = SparkContext.getOrCreate()
     // saving theta values
-    sc.parallelize(thetaS.filter(_._1.length > 1).toList.sortBy(_._2).reverse).saveAsTextFile(dictFile + "/thetaS")
+    sc.parallelize(thetaS.filter(_._1.length > 1).toList.sortBy(_._2).reverse).repartition(1).saveAsTextFile(dictFile + "/thetaS")
     // saving phi values
-    if (phiS != Nil) sc.parallelize(phiS).saveAsTextFile(dictFile + "/phiS")
+    if (phiS != Nil) sc.parallelize(phiS).repartition(1).saveAsTextFile(dictFile + "/phiS")
   }
 }
 
