@@ -14,14 +14,14 @@ For more information about its theory, refer to http://qf6101.github.io/machine%
 
 1. Download Spark 1.6.x from http://spark.apache.org/downloads.html
 
-2. Set the parameters in "deploy/sbin/topwords_local.sh" (simply set only SPARK_HOME if you just need to run "The
+2. Set the parameters in [deploy/sbin/topwords_local.sh](deploy/sbin/topwords_local.sh) (simply set only SPARK_HOME if you just need to run "The
 Story of Stone" example)
 
 3. Run the script: bash deploy/sbin/topwords_local.sh
 
 ## Yarn Cluster Mode
 
-1. Set the parameters in "deploy/sbin/topwords_yarn.sh"
+1. Set the parameters in [deploy/sbin/topwords_yarn.sh](deploy/sbin/topwords_yarn.sh")
 
 2. Run th script: bash deploy/sbin/topwords_yarn.sh (you may need to initialize the keytab in advance)
 
