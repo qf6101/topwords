@@ -21,7 +21,7 @@ Story of Stone" example)
 
 ## Yarn Cluster Mode
 
-1. Set the parameters in [deploy/sbin/topwords_yarn.sh](deploy/sbin/topwords_yarn.sh")
+1. Set the parameters in [deploy/sbin/topwords_yarn.sh](deploy/sbin/topwords_yarn.sh)
 
 2. Run th script: bash deploy/sbin/topwords_yarn.sh (you may need to initialize the keytab in advance)
 
