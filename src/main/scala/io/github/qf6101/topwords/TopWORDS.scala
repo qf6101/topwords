@@ -12,15 +12,15 @@ import org.apache.spark.{Logging, SparkContext}
   *
   * @param tauL             threshold of word length
   * @param tauF             threshold of word frequency
-  * @param numIteration     number of iterations
+  * @param numIterations    number of iterations
   * @param convergeTol      convergence tolerance
   * @param textLenThld      preprocessing threshold of text length
   * @param useProbThld      prune threshold of word use probability
-  * @param wordBoundaryThld segment threshold of word boundary score
+  * @param wordBoundaryThld segment threshold of word boundary score (use segment tree if set to less than 0)
   */
 class TopWORDS(private val tauL: Int,
                private val tauF: Int,
-               private val numIteration: Int,
+               private val numIterations: Int,
                private val convergeTol: Double,
                private val textLenThld: Int,
                private val useProbThld: Double,
@@ -43,7 +43,7 @@ class TopWORDS(private val tauL: Int,
     var converged = false
     var lastLikelihood = -1.0
     // EM loop
-    while (!converged && iter <= numIteration) {
+    while (!converged && iter <= numIterations) {
       // update and prune the dictionary
       val (updatedDict, likelihood) = updateDictionary(texts, dict)
       dict = pruneDictionary(updatedDict)
@@ -59,8 +59,8 @@ class TopWORDS(private val tauL: Int,
     }
     // save the result dictionary
     dict.save(outputDictLoc)
-    // segment the corpus and save the segmented corpus
-    PESegment(texts, dict).saveAsTextFile(outputCorpusLoc)
+    // segment the corpus and save the segmented corpus (at most 10,000 texts per partition)
+    PESegment(texts, dict).repartition(((texts.count() / 10000) + 1).toInt).saveAsTextFile(outputCorpusLoc)
   }
 
   /**
