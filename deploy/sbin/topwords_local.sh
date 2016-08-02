@@ -6,11 +6,12 @@ cd "$( cd "$( dirname "$0"  )" && pwd  )"
 ##### The Parameters You Need to Predefine Start #####
 
 # set the environment variables
-SPARK_HOME="/path/to/spark/home"  #Spark home
+SPARK_HOME="/home/qfeng/install/spark"  #Spark home
 topwords_jar="../release/topwords-1.0.jar"  #topwords jar file
 
 # set the arguments
-corpusLoc="../../test_data/story_of_stone.txt"  #location of input corpus
+inputLoc="../../test_data/story_of_stone.txt"  #location of input corpus
+inputFormat="text"  #format of input files
 outputLoc="../../test_data/test_output" #location of output dictionary and segmented corpus
 tauL="10"  #threshold of word length
 tauF="5"  #threshold of word frequency
@@ -29,7 +30,8 @@ ${SPARK_HOME}/bin/spark-submit \
 --master "local[${numThreads}]" \
 --name topwords_local \
 ${topwords_jar} \
---corpusLoc $corpusLoc \
+--inputLoc $inputLoc \
+--inputFormat $inputFormat \
 --outputLoc $outputLoc \
 --tauL $tauL \
 --tauF $tauF \

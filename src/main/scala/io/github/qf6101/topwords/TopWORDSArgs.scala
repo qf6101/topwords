@@ -6,7 +6,7 @@ package io.github.qf6101.topwords
 /**
   * TopWORDS Application Arguments
   *
-  * @param corpusLoc        location of input corpus
+  * @param inputLoc        location of input corpus
   * @param outputLoc        location of output dictionary and segmented corpus
   * @param tauL             threshold of word length
   * @param tauF             threshold of word frequency
@@ -17,7 +17,8 @@ package io.github.qf6101.topwords
   * @param wordBoundaryThld segment threshold of word boundary score (use segment tree if set to <= 0)
   * @param numPartitions    number of partitions in yarn mode
   */
-case class TopWORDSArgs(corpusLoc: String = "",
+case class TopWORDSArgs(inputLoc: String = "",
+                        inputFormat: String = "text",
                         outputLoc: String = "",
                         tauL: Int = 10,
                         tauF: Int = 5,
@@ -34,9 +35,12 @@ case class TopWORDSArgs(corpusLoc: String = "",
 object TopWORDSParser extends Serializable {
   val parser = new scopt.OptionParser[TopWORDSArgs]("TopWORDSArgs") {
     head("scopt", "3.x")
-    opt[String]("corpusLoc") action { (x, c) =>
-      c.copy(corpusLoc = x)
-    } text "location of corpus"
+    opt[String]("inputLoc") action { (x, c) =>
+      c.copy(inputLoc = x)
+    } text "location of input corpus"
+    opt[String]("inputFormat") action { (x, c) =>
+      c.copy(inputFormat = x)
+    } text "format of input corpus"
     opt[String]("outputLoc") action { (x, c) =>
       c.copy(outputLoc = x)
     } text "location of outputs"
