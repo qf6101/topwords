@@ -11,7 +11,8 @@ SPARK_HOME="/path/to/spark/home"  #Spark home
 topwords_jar="../release/topwords-1.0.jar"  #topwords jar file
 
 # set the arguments
-corpusLoc="/path/to/corpus/in/hdfs/*"  #location of input corpus in HDFS
+inputLoc="/path/to/corpus/in/hdfs/*"  #location of input corpus in HDFS
+inputFormat="text"  #format of input files
 outputLoc="/path/to/output/in/hdfs" #location of output dictionary and segmented corpus in HDFS
 tauL="10"  #threshold of word length
 tauF="5"  #threshold of word frequency
@@ -41,7 +42,8 @@ ${SPARK_HOME}/bin/spark-submit \
 --executor-cores $executor_cores \
 --queue $queue \
 ${topwords_jar} \
---corpusLoc $corpusLoc \
+--inputLoc $inputLoc \
+--inputFormat $inputFormat \
 --outputLoc $outputLoc \
 --tauL $tauL \
 --tauF $tauF \

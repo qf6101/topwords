@@ -1,7 +1,7 @@
 package io.github.qf6101.topwords
 
-import org.apache.spark.rdd.RDD
-import org.apache.spark.{Logging, SparkContext}
+import org.apache.log4j.Logger
+import org.apache.spark.sql.{Dataset, SparkSession}
 
 /**
   * Created by qfeng on 16-7-6.
@@ -25,7 +25,8 @@ class TopWORDS(private val tauL: Int,
                private val textLenThld: Int,
                private val useProbThld: Double,
                private val wordBoundaryThld: Double = 0.0
-              ) extends Logging with Serializable {
+              ) extends Serializable {
+  @transient private[this] val LOGGER = Logger.getLogger(this.getClass.toString)
   /**
     * Run the TopWORDS algorithm
     *
@@ -33,7 +34,7 @@ class TopWORDS(private val tauL: Int,
     * @param outputDictLoc   output dictionary location
     * @param outputCorpusLoc output segmented corpus location
     */
-  def run(corpus: RDD[String], outputDictLoc: String, outputCorpusLoc: String): Unit = {
+  def run(corpus: Dataset[String], outputDictLoc: String, outputCorpusLoc: String): Unit = {
     // preprocess the input corpus
     val texts = new Preprocessing(textLenThld).run(corpus)
     // generate the overcomplete dictionary
@@ -48,7 +49,7 @@ class TopWORDS(private val tauL: Int,
       val (updatedDict, likelihood) = updateDictionary(texts, dict)
       dict = pruneDictionary(updatedDict)
       // log info of the current iteration
-      logInfo("Iteration : " + iter + ", likelihood: " + likelihood + ", dictionary: " + dict.thetaS.size)
+      LOGGER.info("Iteration : " + iter + ", likelihood: " + likelihood + ", dictionary: " + dict.thetaS.size)
       // test the convergence condition
       if (lastLikelihood > 0 && math.abs((likelihood - lastLikelihood) / lastLikelihood) < convergeTol) {
         converged = true
@@ -60,7 +61,7 @@ class TopWORDS(private val tauL: Int,
     // save the result dictionary
     dict.save(outputDictLoc)
     // segment the corpus and save the segmented corpus (at most 10,000 texts per partition)
-    PESegment(texts, dict).repartition(((texts.count() / 10000) + 1).toInt).saveAsTextFile(outputCorpusLoc)
+    PESegment(texts, dict).repartition(((texts.count() / 10000) + 1).toInt).write.text(outputCorpusLoc)
   }
 
   /**
@@ -70,22 +71,25 @@ class TopWORDS(private val tauL: Int,
     * @param dict  dictionary
     * @return (updated dictionary, text likelihoods)
     */
-  def updateDictionary(texts: RDD[String], dict: Dictionary): (Dictionary, Double) = {
+  def updateDictionary(texts: Dataset[String], dict: Dictionary): (Dictionary, Double) = {
+    // importing spark implicits
+    val spark = SparkSession.builder().getOrCreate()
+    import spark.implicits._
+    val dictBC = spark.sparkContext.broadcast(dict)
     // calculating the likelihoods (P(T|theta)) and expectations (niS and riS)
-    val dictBC = SparkContext.getOrCreate().broadcast(dict)
     val dpResult = texts.map { T =>
       val likelihoods = DPLikelihoodsBackward(T, dictBC.value)
       (likelihoods(0), DPExpectations(T, dictBC.value, likelihoods))
     }
     // extract the theta values
     val expectations = dpResult.map(_._2)
-    val nis = expectations.flatMap(_._1).reduceByKey(_ + _)
+    val nis = expectations.flatMap(_._1).rdd.reduceByKey(_ + _)
     val niSum = nis.map(_._2).sum()
     val thetaS = nis.map { case (word, ni) =>
       word -> ni / niSum
     }.collectAsMap().toMap
     // extract the pi values
-    val phiS = expectations.flatMap(_._2).filter(_._1.length > 1).aggregateByKey(0.0)(
+    val phiS = expectations.flatMap(_._2).filter(_._1.length > 1).rdd.aggregateByKey(0.0)(
       seqOp = (s, riT) => {
         s - math.log(1.0 - riT)
       },
@@ -93,7 +97,7 @@ class TopWORDS(private val tauL: Int,
         s1 + s2
       }).collect().toList.sortBy(_._2).reverse
     // return the updated dictionary and the average likelihood of texts
-    (new Dictionary(thetaS, phiS), dpResult.map(_._1).mean())
+    (new Dictionary(thetaS, phiS), dpResult.rdd.map(_._1).mean())
   }
 
   /**
@@ -163,7 +167,10 @@ class TopWORDS(private val tauL: Int,
     * @param dict  dictionary
     * @return the segmented texts
     */
-  def PESegment(texts: RDD[String], dict: Dictionary): RDD[String] = {
+  def PESegment(texts: Dataset[String], dict: Dictionary): Dataset[String] = {
+    // importing spark implicits
+    val spark = SparkSession.builder().getOrCreate()
+    import spark.implicits._
     texts.map { T =>
       // calculating the P(T|theta) forwards and backwards respectively
       val forwardLikelihoods = DPLikelihoodsForward(T, dict)

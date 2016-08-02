@@ -1,6 +1,7 @@
 package io.github.qf6101.topwords
 
 import org.apache.hadoop.fs.{FileSystem, Path}
+import org.apache.spark.sql.SparkSession
 import org.apache.spark.{SparkConf, SparkContext}
 
 /**
@@ -11,13 +12,14 @@ object TestTopWORDS extends Serializable {
     * Test TopWORDS on《story of stone (红楼梦)》
     */
   def main(args: Array[String]) {
-    val conf = new SparkConf().setMaster("local[1]").setAppName(this.getClass.toString)
-    val sc = new SparkContext(conf)
+    // setup spark session
+    val spark = SparkSession.builder().master("local[1]").appName(this.getClass.toString).getOrCreate()
+    import spark.implicits._
     val inputFile = "test_data/story_of_stone.txt"
     val outputFile = "test_data/test_output"
-    val files = FileSystem.get(sc.hadoopConfiguration)
+    val files = FileSystem.get(spark.sparkContext.hadoopConfiguration)
     if (files.exists(new Path(outputFile))) files.delete(new Path(outputFile), true)
-    val corpus = sc.textFile(inputFile)
+    val corpus = spark.read.format("text").load(inputFile).map(_.toString())
     new TopWORDS(
       tauL = 10,
       tauF = 5,

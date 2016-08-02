@@ -1,6 +1,7 @@
 package io.github.qf6101.topwords
 
 import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.{Dataset, SparkSession}
 
 /**
   * Created by qfeng on 16-7-6.
@@ -18,7 +19,10 @@ class Preprocessing(private val textLenThld: Int) extends Serializable {
     * @param corpus corpus
     * @return preprocessed corpus
     */
-  def run(corpus: RDD[String]): RDD[String] = {
+  def run(corpus: Dataset[String]): Dataset[String] = {
+    // importing spark implicits
+    val spark = SparkSession.builder().getOrCreate()
+    import spark.implicits._
     corpus.flatMap { T =>
       // split the paragraph into several texts using punctuations and spaces
       T.split("\\pP|\\pS|\\s|　").map(_.trim)
