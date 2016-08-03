@@ -18,7 +18,7 @@ object TopWORDSApp extends Serializable {
     try {
       TopWORDSParser.parse(args).foreach { args =>
         spark.read.format(args.inputFormat).load(args.inputLoc).map(_.toString()).write.text(args.outputLoc +
-          "newscorpus")
+          "newscorpus2")
 
         // remove output location files if exist
 //        val files = FileSystem.get(spark.sparkContext.hadoopConfiguration)
