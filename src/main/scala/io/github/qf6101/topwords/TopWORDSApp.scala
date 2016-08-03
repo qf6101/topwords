@@ -9,6 +9,7 @@ import org.apache.spark.sql.SparkSession
   */
 object TopWORDSApp extends Serializable {
   @transient private[this] val LOGGER = Logger.getLogger(TopWORDSApp.getClass.toString)
+
   def main(args: Array[String]) {
     // setup spark session
     val spark = SparkSession.builder().getOrCreate()
@@ -19,22 +20,22 @@ object TopWORDSApp extends Serializable {
         val files = FileSystem.get(spark.sparkContext.hadoopConfiguration)
         if (files.exists(new Path(args.outputLoc))) files.delete(new Path(args.outputLoc), true)
         // read input corpus
-        val corpus = spark.read.format(args.inputFormat).load(args.inputLoc).map(_.toString())
-        if(args.numIterations > 0) corpus.repartition(args.numIterations)
+        val corpus = if (args.numIterations <= 0) spark.read.format(args.inputFormat).load(args.inputLoc).map(_.toString())
+        else spark.read.format(args.inputFormat).load(args.inputLoc).map(_.toString()).repartition(args.numIterations)
         // run TopWORDS with the parsed arguments
-        new TopWORDS(
-          tauL = args.tauL,
-          tauF = args.tauF,
-          textLenThld = args.textLenThld,
-          useProbThld = args.useProbThld,
-          numIterations = args.numIterations,
-          convergeTol = args.convergeTol,
-          wordBoundaryThld = args.wordBoundaryThld)
-          .run(corpus, args.outputLoc + "/dictionary", args.outputLoc + "/segmented_texts")
+          new TopWORDS(
+            tauL = args.tauL,
+            tauF = args.tauF,
+            textLenThld = args.textLenThld,
+            useProbThld = args.useProbThld,
+            numIterations = args.numIterations,
+            convergeTol = args.convergeTol,
+            wordBoundaryThld = args.wordBoundaryThld)
+            .run(corpus, args.outputLoc + "/dictionary", args.outputLoc + "/segmented_texts")
       }
       //exit normally
       LOGGER.info("Running TopWORDS successfully!")
-       sys.exit(0)
+      sys.exit(0)
     } catch {
       case ex: Throwable =>
         LOGGER.error("Running TopWORDS fail!", ex)
