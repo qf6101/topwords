@@ -3,7 +3,6 @@ package io.github.qf6101.topwords
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.log4j.Logger
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.storage.StorageLevel
 
 /**
   * Created by qfeng on 16-7-18.
@@ -21,8 +20,9 @@ object TopWORDSApp extends Serializable {
         val files = FileSystem.get(spark.sparkContext.hadoopConfiguration)
         if (files.exists(new Path(args.outputLoc))) files.delete(new Path(args.outputLoc), true)
         // read input corpus
-        val corpus = spark.read.format(args.inputFormat).load(args.inputLoc).map(_.toString())
-        if(args.numPartitions > 0) corpus.repartition(args.numPartitions)
+        val corpus = if (args.numIterations > 0)
+          spark.read.format(args.inputFormat).load(args.inputLoc).repartition(args.numPartitions).map(_.toString())
+        else spark.read.format(args.inputFormat).load(args.inputLoc).map(_.toString())
         LOGGER.info("Number of lines of input corpus: " + corpus.count())
         // run TopWORDS with the parsed arguments
         new TopWORDS(
@@ -37,12 +37,12 @@ object TopWORDSApp extends Serializable {
       }
       //exit normally
       LOGGER.info("Running TopWORDS successfully!")
-      if(spark.sparkContext.master.contains("local")) sys.exit(0)
+      if (spark.sparkContext.master.contains("local")) sys.exit(0)
     } catch {
       case ex: Throwable =>
         LOGGER.error("Running TopWORDS fail!", ex)
         //signal to external process
-        if(spark.sparkContext.master.contains("local")) sys.exit(1)
+        if (spark.sparkContext.master.contains("local")) sys.exit(1)
     } finally spark.stop()
   }
 }
