@@ -37,12 +37,12 @@ object TopWORDSApp extends Serializable {
       }
       //exit normally
       LOGGER.info("Running TopWORDS successfully!")
-      sys.exit(0)
+      if(spark.sparkContext.master.contains("local")) sys.exit(0)
     } catch {
       case ex: Throwable =>
         LOGGER.error("Running TopWORDS fail!", ex)
         //signal to external process
-        sys.exit(1)
-    }
+        if(spark.sparkContext.master.contains("local")) sys.exit(1)
+    } finally spark.stop()
   }
 }
