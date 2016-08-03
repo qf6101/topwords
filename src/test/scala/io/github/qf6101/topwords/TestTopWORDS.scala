@@ -2,7 +2,6 @@ package io.github.qf6101.topwords
 
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.{SparkConf, SparkContext}
 
 /**
   * Created by qfeng on 16-7-6.
