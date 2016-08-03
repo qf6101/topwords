@@ -2,6 +2,7 @@ package io.github.qf6101.topwords
 
 import org.apache.log4j.Logger
 import org.apache.spark.sql.{Dataset, SparkSession}
+import org.apache.spark.storage.StorageLevel
 
 /**
   * Created by qfeng on 16-7-6.
@@ -36,7 +37,7 @@ class TopWORDS(private val tauL: Int,
     */
   def run(corpus: Dataset[String], outputDictLoc: String, outputCorpusLoc: String): Unit = {
     // preprocess the input corpus
-    val texts = new Preprocessing(textLenThld).run(corpus)
+    val texts = new Preprocessing(textLenThld).run(corpus).persist(StorageLevel.MEMORY_AND_DISK_SER_2)
     // generate the overcomplete dictionary
     var dict = Dictionary(texts, tauL, tauF, useProbThld)
     // initialize the loop variables

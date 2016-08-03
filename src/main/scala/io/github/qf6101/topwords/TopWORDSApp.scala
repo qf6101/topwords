@@ -31,7 +31,7 @@ object TopWORDSApp extends Serializable {
           numIterations = args.numIterations,
           convergeTol = args.convergeTol,
           wordBoundaryThld = args.wordBoundaryThld)
-          .run(corpus.persist(StorageLevel.MEMORY_AND_DISK_SER_2), args.outputLoc + "/dictionary", args.outputLoc + "/segmented_texts")
+          .run(corpus, args.outputLoc + "/dictionary", args.outputLoc + "/segmented_texts")
       }
       //exit normally
       LOGGER.info("Running TopWORDS successfully!")

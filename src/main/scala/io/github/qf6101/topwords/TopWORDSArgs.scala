@@ -6,7 +6,8 @@ package io.github.qf6101.topwords
 /**
   * TopWORDS Application Arguments
   *
-  * @param inputLoc        location of input corpus
+  * @param inputLoc         location of input corpus
+  * @param inputFormat      format of input corpus
   * @param outputLoc        location of output dictionary and segmented corpus
   * @param tauL             threshold of word length
   * @param tauF             threshold of word frequency
