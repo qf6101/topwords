@@ -23,6 +23,7 @@ object TopWORDSApp extends Serializable {
         // read input corpus
         val corpus = spark.read.format(args.inputFormat).load(args.inputLoc).map(_.toString())
         if(args.numPartitions > 0) corpus.repartition(args.numPartitions)
+        LOGGER.info("Number of lines of input corpus: " + corpus.count())
         // run TopWORDS with the parsed arguments
         new TopWORDS(
           tauL = args.tauL,
