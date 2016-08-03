@@ -3,6 +3,7 @@ package io.github.qf6101.topwords
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.log4j.Logger
 import org.apache.spark.sql.SparkSession
+import org.apache.spark.storage.StorageLevel
 
 /**
   * Created by qfeng on 16-7-18.
@@ -20,18 +21,18 @@ object TopWORDSApp extends Serializable {
         val files = FileSystem.get(spark.sparkContext.hadoopConfiguration)
         if (files.exists(new Path(args.outputLoc))) files.delete(new Path(args.outputLoc), true)
         // read input corpus
-        val corpus = if (args.numIterations <= 0) spark.read.format(args.inputFormat).load(args.inputLoc).map(_.toString())
-        else spark.read.format(args.inputFormat).load(args.inputLoc).map(_.toString()).repartition(args.numIterations)
+        val corpus = spark.read.format(args.inputFormat).load(args.inputLoc).map(_.toString())
+          .repartition(args.numIterations).persist(StorageLevel.MEMORY_AND_DISK_SER_2)
         // run TopWORDS with the parsed arguments
-          new TopWORDS(
-            tauL = args.tauL,
-            tauF = args.tauF,
-            textLenThld = args.textLenThld,
-            useProbThld = args.useProbThld,
-            numIterations = args.numIterations,
-            convergeTol = args.convergeTol,
-            wordBoundaryThld = args.wordBoundaryThld)
-            .run(corpus, args.outputLoc + "/dictionary", args.outputLoc + "/segmented_texts")
+        new TopWORDS(
+          tauL = args.tauL,
+          tauF = args.tauF,
+          textLenThld = args.textLenThld,
+          useProbThld = args.useProbThld,
+          numIterations = args.numIterations,
+          convergeTol = args.convergeTol,
+          wordBoundaryThld = args.wordBoundaryThld)
+          .run(corpus, args.outputLoc + "/dictionary", args.outputLoc + "/segmented_texts")
       }
       //exit normally
       LOGGER.info("Running TopWORDS successfully!")
