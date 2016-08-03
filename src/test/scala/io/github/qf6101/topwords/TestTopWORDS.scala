@@ -15,10 +15,6 @@ object TestTopWORDS extends Serializable {
     // setup spark session
     val spark = SparkSession.builder().master("local[1]").appName(this.getClass.toString).getOrCreate()
     import spark.implicits._
-
-    val tmp = spark.read.format("parquet").load("test_data/test.gz.parquet")
-    println(tmp.take(2)(1).toString())
-
     val inputFile = "test_data/story_of_stone.txt"
     val outputFile = "test_data/test_output"
     val files = FileSystem.get(spark.sparkContext.hadoopConfiguration)
