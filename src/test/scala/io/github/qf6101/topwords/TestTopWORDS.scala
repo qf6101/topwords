@@ -13,12 +13,11 @@ object TestTopWORDS extends Serializable {
   def main(args: Array[String]) {
     // setup spark session
     val spark = SparkSession.builder().master("local[1]").appName(this.getClass.toString).getOrCreate()
-    import spark.implicits._
     val inputFile = "test_data/story_of_stone.txt"
     val outputFile = "test_data/test_output"
     val files = FileSystem.get(spark.sparkContext.hadoopConfiguration)
     if (files.exists(new Path(outputFile))) files.delete(new Path(outputFile), true)
-    val corpus = spark.read.format("text").load(inputFile).map(_.toString())
+    val corpus = spark.sparkContext.textFile(inputFile)
     new TopWORDS(
       tauL = 10,
       tauF = 5,

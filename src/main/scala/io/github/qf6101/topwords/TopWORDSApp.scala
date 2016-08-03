@@ -13,7 +13,6 @@ object TopWORDSApp extends Serializable {
   def main(args: Array[String]) {
     // setup spark session
     val spark = SparkSession.builder().getOrCreate()
-    import spark.implicits._
     try {
       TopWORDSParser.parse(args).foreach { args =>
         // remove output location files if exist
@@ -21,8 +20,8 @@ object TopWORDSApp extends Serializable {
         if (files.exists(new Path(args.outputLoc))) files.delete(new Path(args.outputLoc), true)
         // read input corpus
         val corpus = if (args.numIterations > 0)
-          spark.read.format(args.inputFormat).load(args.inputLoc).repartition(args.numPartitions).map(_.toString())
-        else spark.read.format(args.inputFormat).load(args.inputLoc).map(_.toString())
+          spark.sparkContext.textFile(args.inputLoc).repartition(args.numPartitions)
+        else spark.sparkContext.textFile(args.inputLoc)
         LOGGER.info("Number of lines of input corpus: " + corpus.count())
         // run TopWORDS with the parsed arguments
         new TopWORDS(

@@ -2,7 +2,7 @@ package io.github.qf6101.topwords
 
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.{Dataset, SparkSession}
+import org.apache.spark.sql.SparkSession
 
 import scala.collection.mutable.ListBuffer
 
@@ -62,7 +62,7 @@ object Dictionary extends Serializable {
     * @param tauF   threshold of word frequency
     * @return an overcomplete dictionary
     */
-  def apply(corpus: Dataset[String],
+  def apply(corpus: RDD[String],
             tauL: Int,
             tauF: Int,
             useProbThld: Double): Dictionary = {
@@ -78,7 +78,7 @@ object Dictionary extends Serializable {
         }
       }
       permutations
-    }.map(_ -> 1).rdd.reduceByKey(_ + _).filter { case (word, freq) =>
+    }.map(_ -> 1).reduceByKey(_ + _).filter { case (word, freq) =>
       // leave the single characters in dictionary for smoothing reason even if they are low frequency
       word.length == 1 || freq >= tauF
     }
