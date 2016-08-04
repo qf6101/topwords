@@ -64,6 +64,7 @@ class TopWORDS(private val tauL: Int,
     dict.save(outputDictLoc)
     // segment the corpus and save the segmented corpus (at most 10,000 texts per partition)
     PESegment(texts, dict).repartition(((texts.count() / 10000) + 1).toInt).saveAsTextFile(outputCorpusLoc)
+    texts.unpersist()
   }
 
   /**
@@ -81,7 +82,7 @@ class TopWORDS(private val tauL: Int,
     val dpResult = texts.map { T =>
       val likelihoods = DPLikelihoodsBackward(T, dictBC.value)
       (likelihoods(0), DPExpectations(T, dictBC.value, likelihoods))
-    }
+    }.persist(StorageLevel.MEMORY_AND_DISK_SER_2)
     // extract the theta values
     val expectations = dpResult.map(_._2)
     val nis = expectations.flatMap(_._1).reduceByKey(_ + _)
@@ -98,7 +99,9 @@ class TopWORDS(private val tauL: Int,
         s1 + s2
       }).collect().toList.sortBy(_._2).reverse
     // return the updated dictionary and the average likelihood of texts
-    (new Dictionary(thetaS, phiS), dpResult.map(_._1).mean())
+    val avglikelihood = dpResult.map(_._1).mean()
+    dpResult.unpersist()
+    (new Dictionary(thetaS, phiS), avglikelihood)
   }
 
   /**

@@ -2,7 +2,7 @@ package io.github.qf6101.topwords
 
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.SparkSession
+import org.apache.spark.storage.StorageLevel
 
 import scala.collection.mutable.ListBuffer
 
@@ -66,9 +66,6 @@ object Dictionary extends Serializable {
             tauL: Int,
             tauF: Int,
             useProbThld: Double): Dictionary = {
-    // importing spark implicits
-    val spark = SparkSession.builder().getOrCreate()
-    import spark.implicits._
     //enumerate all the possible words: corpus -> words
     val words = corpus.flatMap { text =>
       val permutations = ListBuffer[String]()
@@ -81,7 +78,7 @@ object Dictionary extends Serializable {
     }.map(_ -> 1).reduceByKey(_ + _).filter { case (word, freq) =>
       // leave the single characters in dictionary for smoothing reason even if they are low frequency
       word.length == 1 || freq >= tauF
-    }
+    }.persist(StorageLevel.MEMORY_AND_DISK_SER_2)
     //filter words by the use probability threshold: words -> prunedWords
     val sumWordFreq = words.map(_._2).sum()
     val prunedWords = words.map { case (word, freq) =>
@@ -90,11 +87,14 @@ object Dictionary extends Serializable {
       // leave the single characters in dictionary for smoothing reason even if they have small theta
       word.length == 1 || theta >= useProbThld
     }
+    words.unpersist()
+    prunedWords.persist(StorageLevel.MEMORY_AND_DISK_SER_2)
     //normalize the word use probability: prunedWords -> normalizedWords
     val sumPrunedWordFreq = prunedWords.map(_._2).sum()
     val normalizedWords = prunedWords.map { case (word, freq, _) =>
       word -> freq / sumPrunedWordFreq
     }.collectAsMap().toMap
+    prunedWords.unpersist()
     //return the overcomplete dictionary: normalizedWords -> dictionary
     new Dictionary(normalizedWords)
   }
