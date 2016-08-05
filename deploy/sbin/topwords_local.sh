@@ -6,7 +6,7 @@ cd "$( cd "$( dirname "$0"  )" && pwd  )"
 ##### The Parameters You Need to Predefine Start #####
 
 # set the environment variables
-SPARK_HOME="/home/qfeng/install/spark"  #Spark home
+SPARK_HOME="/path/to/spark"  #Spark home
 topwords_jar="../release/topwords-1.0.jar"  #topwords jar file
 
 # set the arguments
