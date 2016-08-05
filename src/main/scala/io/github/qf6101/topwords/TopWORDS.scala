@@ -1,7 +1,9 @@
 package io.github.qf6101.topwords
 
+import org.apache.log4j.Logger
 import org.apache.spark.rdd.RDD
-import org.apache.spark.{Logging, SparkContext}
+import org.apache.spark.sql.SparkSession
+import org.apache.spark.storage.StorageLevel
 
 /**
   * Created by qfeng on 16-7-6.
@@ -25,7 +27,8 @@ class TopWORDS(private val tauL: Int,
                private val textLenThld: Int,
                private val useProbThld: Double,
                private val wordBoundaryThld: Double = 0.0
-              ) extends Logging with Serializable {
+              ) extends Serializable {
+  @transient private[this] val LOGGER = Logger.getLogger(this.getClass.toString)
   /**
     * Run the TopWORDS algorithm
     *
@@ -35,7 +38,7 @@ class TopWORDS(private val tauL: Int,
     */
   def run(corpus: RDD[String], outputDictLoc: String, outputCorpusLoc: String): Unit = {
     // preprocess the input corpus
-    val texts = new Preprocessing(textLenThld).run(corpus)
+    val texts = new Preprocessing(textLenThld).run(corpus).persist(StorageLevel.MEMORY_AND_DISK_SER_2)
     // generate the overcomplete dictionary
     var dict = Dictionary(texts, tauL, tauF, useProbThld)
     // initialize the loop variables
@@ -48,7 +51,7 @@ class TopWORDS(private val tauL: Int,
       val (updatedDict, likelihood) = updateDictionary(texts, dict)
       dict = pruneDictionary(updatedDict)
       // log info of the current iteration
-      logInfo("Iteration : " + iter + ", likelihood: " + likelihood + ", dictionary: " + dict.thetaS.size)
+      LOGGER.info("Iteration : " + iter + ", likelihood: " + likelihood + ", dictionary: " + dict.thetaS.size)
       // test the convergence condition
       if (lastLikelihood > 0 && math.abs((likelihood - lastLikelihood) / lastLikelihood) < convergeTol) {
         converged = true
@@ -61,6 +64,7 @@ class TopWORDS(private val tauL: Int,
     dict.save(outputDictLoc)
     // segment the corpus and save the segmented corpus (at most 10,000 texts per partition)
     PESegment(texts, dict).repartition(((texts.count() / 10000) + 1).toInt).saveAsTextFile(outputCorpusLoc)
+    texts.unpersist()
   }
 
   /**
@@ -71,12 +75,14 @@ class TopWORDS(private val tauL: Int,
     * @return (updated dictionary, text likelihoods)
     */
   def updateDictionary(texts: RDD[String], dict: Dictionary): (Dictionary, Double) = {
+    // importing spark implicits
+    val spark = SparkSession.builder().getOrCreate()
+    val dictBC = spark.sparkContext.broadcast(dict)
     // calculating the likelihoods (P(T|theta)) and expectations (niS and riS)
-    val dictBC = SparkContext.getOrCreate().broadcast(dict)
     val dpResult = texts.map { T =>
       val likelihoods = DPLikelihoodsBackward(T, dictBC.value)
       (likelihoods(0), DPExpectations(T, dictBC.value, likelihoods))
-    }
+    }.persist(StorageLevel.MEMORY_AND_DISK_SER_2)
     // extract the theta values
     val expectations = dpResult.map(_._2)
     val nis = expectations.flatMap(_._1).reduceByKey(_ + _)
@@ -93,7 +99,9 @@ class TopWORDS(private val tauL: Int,
         s1 + s2
       }).collect().toList.sortBy(_._2).reverse
     // return the updated dictionary and the average likelihood of texts
-    (new Dictionary(thetaS, phiS), dpResult.map(_._1).mean())
+    val avglikelihood = dpResult.map(_._1).mean()
+    dpResult.unpersist()
+    (new Dictionary(thetaS, phiS), avglikelihood)
   }
 
   /**
