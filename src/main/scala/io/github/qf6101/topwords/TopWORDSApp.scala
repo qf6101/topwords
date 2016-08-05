@@ -19,7 +19,7 @@ object TopWORDSApp extends Serializable {
         val files = FileSystem.get(spark.sparkContext.hadoopConfiguration)
         if (files.exists(new Path(args.outputLoc))) files.delete(new Path(args.outputLoc), true)
         // read input corpus
-        val corpus = if (args.numIterations > 0)
+        val corpus = if (args.numPartitions > 0)
           spark.sparkContext.textFile(args.inputLoc).repartition(args.numPartitions)
         else spark.sparkContext.textFile(args.inputLoc)
         LOGGER.info("Number of lines of input corpus: " + corpus.count())
