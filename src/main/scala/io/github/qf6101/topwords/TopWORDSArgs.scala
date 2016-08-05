@@ -7,7 +7,6 @@ package io.github.qf6101.topwords
   * TopWORDS Application Arguments
   *
   * @param inputLoc         location of input corpus
-  * @param inputFormat      format of input corpus
   * @param outputLoc        location of output dictionary and segmented corpus
   * @param tauL             threshold of word length
   * @param tauF             threshold of word frequency
@@ -19,7 +18,6 @@ package io.github.qf6101.topwords
   * @param numPartitions    number of partitions in yarn mode
   */
 case class TopWORDSArgs(inputLoc: String = "",
-                        inputFormat: String = "text",
                         outputLoc: String = "",
                         tauL: Int = 10,
                         tauF: Int = 5,
@@ -39,9 +37,6 @@ object TopWORDSParser extends Serializable {
     opt[String]("inputLoc") action { (x, c) =>
       c.copy(inputLoc = x)
     } text "location of input corpus"
-    opt[String]("inputFormat") action { (x, c) =>
-      c.copy(inputFormat = x)
-    } text "format of input corpus"
     opt[String]("outputLoc") action { (x, c) =>
       c.copy(outputLoc = x)
     } text "location of outputs"

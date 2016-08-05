@@ -12,7 +12,6 @@ topwords_jar="../release/topwords-1.0.jar"  #topwords jar file
 
 # set the arguments
 inputLoc="/path/to/corpus/in/hdfs/*"  #location of input corpus in HDFS
-inputFormat="text"  #format of input files (parquet/json/text) 
 outputLoc="/path/to/output/in/hdfs" #location of output dictionary and segmented corpus in HDFS
 tauL="6"  #threshold of word length
 tauF="100"  #threshold of word frequency
@@ -44,7 +43,6 @@ ${SPARK_HOME}/bin/spark-submit \
 --queue $queue \
 ${topwords_jar} \
 --inputLoc $inputLoc \
---inputFormat $inputFormat \
 --outputLoc $outputLoc \
 --tauL $tauL \
 --tauF $tauF \

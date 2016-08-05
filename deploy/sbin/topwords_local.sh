@@ -11,7 +11,6 @@ topwords_jar="../release/topwords-1.0.jar"  #topwords jar file
 
 # set the arguments
 inputLoc="../../test_data/story_of_stone.txt"  #location of input corpus
-inputFormat="text"  #format of input files
 outputLoc="../../test_data/test_output" #location of output dictionary and segmented corpus
 tauL="10"  #threshold of word length
 tauF="5"  #threshold of word frequency
@@ -31,7 +30,6 @@ ${SPARK_HOME}/bin/spark-submit \
 --name topwords_local \
 ${topwords_jar} \
 --inputLoc $inputLoc \
---inputFormat $inputFormat \
 --outputLoc $outputLoc \
 --tauL $tauL \
 --tauF $tauF \
